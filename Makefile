@@ -8,7 +8,7 @@ CXXFLAGS += -Wfloat-equal -Wcast-qual -Wcast-align -fvisibility=hidden # -Wconve
 # By default sets to debug mode.
 DEBUG ?= 1
 RLOG ?= 1
-GDB ?= 0
+GDB ?= 1
 ifeq ($(GDB), 1)
 	CXXFLAGS += -O0 -g
 	DBGFLAGS += -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -g -fmax-errors=2
@@ -55,11 +55,11 @@ curdir:
 
 ifeq ($(DEBUG), 1)
 % : %.cc
-	@echo "cxx $<"
+	@echo "cxx $(CXXFLAGS) $<"
 	@$(CXX) $(CXXFLAGS) $(DBGFLAGS) $< $(LDFLAGS) -o $@ $(CXXLIBS) $(CXXINCS)
 else
 % : %.cl
-	@echo "cxx $<"
+	@echo "cxx $(CXXFLAGS) $<"
 	@$(CXX) -x c++ $(CXXFLAGS) $(DBGFLAGS) $< $(LDFLAGS) -o $@ $(CXXLIBS) $(CXXINCS)
 endif
 

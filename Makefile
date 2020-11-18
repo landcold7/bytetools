@@ -2,16 +2,31 @@ CXX = g++-9
 SHELL = /bin/bash -o pipefail
 ALGOROOT = ${ALGO}
 
-CXXFLAGS = -Wall -Wextra -pedantic -std=c++14 -Wshadow -Wformat=2 -Wfloat-equal -Wcast-qual -Wcast-align -fvisibility=hidden # -Wconversion
+CXXFLAGS =
+CXXFLAGS += -Wall
+CXXFLAGS += -Wextra
+CXXFLAGS += -pedantic
+CXXFLAGS += -std=c++14
+CXXFLAGS += -Wshadow
+CXXFLAGS += -Wformat=2
+CXXFLAGS += -Wfloat-equal
+CXXFLAGS += -Wcast-qual
+CXXFLAGS += -Wcast-align
+CXXFLAGS += -fvisibility=hidden
+# CXXFLAGS += -Wconversion
 
 # By default sets to debug mode.
 DEBUG ?= 1
 RLOG ?= 1
 ifeq ($(DEBUG), 1)
-	CXXFLAGS += -O0 -g
-	DBGFLAGS += -fsanitize=address -fsanitize=undefined -fno-sanitize-recover -g -fmax-errors=2
+	CXXFLAGS += -O0
+	DBGFLAGS += -g
+	DBGFLAGS += -fsanitize=address
+	DBGFLAGS += -fsanitize=undefined
+	DBGFLAGS += -fno-sanitize-recover
 	DBGFLAGS += -DLOCAL
-  DBGFLAGS += -D_GLIBCXX_DEBUG -D_GLIBCXX_DEBUG_PEDANTIC
+  DBGFLAGS += -D_GLIBCXX_DEBUG
+  DBGFLAGS += -D_GLIBCXX_DEBUG_PEDANTIC
 	# Since this flag will cause a AddressSantizer error on my debug
 	# function `trace`, so here I just simply comment out this one.
 	# -fstack-protector
@@ -20,8 +35,10 @@ else
 endif
 
 # For local debug purpose
-CXXINCS = -I$(ALGOROOT) -I$(ALGOROOT)/third_party/jngen/includes
-# CXXLIBS += -lgvc -lcgraph -lcdt
+CXXINCS =
+CXXFLAGS += -I$(ALGOROOT)
+CXXFLAGS += -I$(ALGOROOT)/third_party/jngen/includes
+CXXLIBS += -lgvc -lcgraph -lcdt
 
 # byte-test config
 CNT ?= 4
@@ -41,6 +58,7 @@ help:
 	@echo "   byte-test  CNT=4 LOG=0    "
 	@echo "   bsc  			 generate compare file"
 	@echo "   bsg  			 generate random tests"
+	@echo "   make somp  run sample with brute force"
 	@echo "   make comp DEBUG=0 LOG=1 CNT=4 do compare"
 
 
@@ -48,8 +66,7 @@ curdir:
 	@echo $(CURDIR)
 
 % : %.cc
-	@echo "cxx $(CXXFLAGS) $(DBGFLAGS) $<"
-	@$(CXX) $(CXXFLAGS) $(DBGFLAGS) $< $(LDFLAGS) -o $@ $(CXXLIBS) $(CXXINCS)
+	$(CXX) $(CXXFLAGS) $(DBGFLAGS) $< $(LDFLAGS) -o $@ $(CXXLIBS) $(CXXINCS)
 
 %.cl : %.cc
 	@echo "byte-post"
@@ -79,6 +96,10 @@ samples: clean
 test: samples $(ELF)
 	@echo byte-run $(ELF)
 	@byte-run $(ELF) $(DEBUG) $(RLOG)
+
+somp: samples $(CMP)
+	@echo byte-test
+	@byte-run $(CMP) $(DEBUG) $(RLOG)
 
 comp: deepclean $(ELF) $(GEN) $(CMP)
 	@echo byte-test

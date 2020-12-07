@@ -13,7 +13,7 @@ CXXFLAGS += -Wfloat-equal
 CXXFLAGS += -Wcast-qual
 CXXFLAGS += -Wcast-align
 CXXFLAGS += -fvisibility=hidden
-# CXXFLAGS += -Wconversion
+CXXFLAGS += -Wconversion
 
 # By default sets to debug mode.
 DEBUG ?= 1
@@ -23,10 +23,13 @@ ifeq ($(DEBUG), 1)
 	DBGFLAGS += -g
 	DBGFLAGS += -fsanitize=address
 	DBGFLAGS += -fsanitize=undefined
+	DBGFLAGS += -fno-omit-frame-pointer
 	DBGFLAGS += -fno-sanitize-recover
 	DBGFLAGS += -DLOCAL
+	# These three debug flags below will mess extc++.h up.
   DBGFLAGS += -D_GLIBCXX_DEBUG
   DBGFLAGS += -D_GLIBCXX_DEBUG_PEDANTIC
+  DBGFLAGS += -D_GLIBCXX_ASSERTIONS
 	# Since this flag will cause a AddressSantizer error on my debug
 	# function `trace`, so here I just simply comment out this one.
 	# -fstack-protector
@@ -65,12 +68,18 @@ help:
 curdir:
 	@echo $(CURDIR)
 
+ifeq ($(DEBUG), 1)
 % : %.cc
-	$(CXX) $(CXXFLAGS) $(DBGFLAGS) $< $(LDFLAGS) -o $@ $(CXXLIBS) $(CXXINCS)
+	@echo "cxx $<"
+	@$(CXX) $(CXXFLAGS) $(DBGFLAGS) $< $(LDFLAGS) -o $@ $(CXXLIBS) $(CXXINCS)
+else
+% : %.cl
+	@echo "cxx $<"
+	@$(CXX) $(CXXFLAGS) -x c++ $(DBGFLAGS) $< $(LDFLAGS) -o $@ $(CXXLIBS) $(CXXINCS)
+endif
 
 %.cl : %.cc
-	@echo "byte-post"
-	@byte-post $(ELF)
+	byte-post $(ELF)
 	@pbcopy < $(ELF).cl && pbpaste 2>&1 >/dev/null
 
 %_mp : %.mp

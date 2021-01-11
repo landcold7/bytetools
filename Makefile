@@ -1,4 +1,4 @@
-CXX = g++-9
+CXX = g++
 SHELL = /bin/bash -o pipefail
 ALGOROOT = ${ALGO}
 
